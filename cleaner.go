@@ -4,25 +4,45 @@ import (
   "os"
   "bufio"
   "fmt"
+  "strings"
 )
 
-func parse(file *os.File) error {
-  lines := map[string][]string{}
+type Style struct {
+  Attribute string
+  Value string
+}
+
+func NewStyle(fromLine string) Style {
+  vals := strings.SplitN(fromLine, ":", 2)
+  return Style{
+    Attribute: strings.TrimSpace(vals[0]),
+    Value: strings.TrimSpace(vals[1]),
+  }
+}
+
+type Styles map[string]string
+
+func Parse(file *os.File) error {
+  lines := map[string]Styles{}
   scanner := bufio.NewScanner(file)
-  selector := ""
+  var selector string
+
   for scanner.Scan() {
-    line := scanner.Text()
-    if line == "" {
+    line := strings.TrimRight(strings.TrimSpace(strings.Replace(scanner.Text(), "{", "", 1)), ";")
+    if line == "" || line == "}" {
       continue
     }
+
     if line[0] == '#' || line[0] == '.' {
-      selector = line[0:len(line) - 2]
+      selector = line
       if _, ok := lines[selector]; !ok {
-        lines[selector] = []string{}
+        lines[selector] = Styles{}
       }
-    } else if line[0] != '}' {
-      lines[selector] = append(lines[selector], line)
+      continue
     }
+
+    style := NewStyle(line)
+    lines[selector][style.Attribute] = style.Value
   }
 
   fmt.Println(lines)
@@ -31,13 +51,13 @@ func parse(file *os.File) error {
 }
 
 func main() {
-  file, e := os.Open("test.scss");
+  file, e := os.Open("test/test.scss");
   if e != nil {
     panic(e)
   }
   defer file.Close()
 
-  if err := parse(file); err != nil {
+  if err := Parse(file); err != nil {
     panic(err)
   }
 }
