@@ -22,7 +22,7 @@ func NewStyle(fromLine string) Style {
 
 type Styles map[string]string
 
-func Parse(file *os.File) error {
+func Parse(file *os.File) (map[string]Styles, error) {
   lines := map[string]Styles{}
   scanner := bufio.NewScanner(file)
   var selector string
@@ -45,9 +45,7 @@ func Parse(file *os.File) error {
     lines[selector][style.Attribute] = style.Value
   }
 
-  fmt.Println(lines)
-
-  return scanner.Err()
+  return lines, scanner.Err()
 }
 
 func main() {
@@ -57,7 +55,7 @@ func main() {
   }
   defer file.Close()
 
-  if err := Parse(file); err != nil {
+  if _, err := Parse(file); err != nil {
     panic(err)
   }
 }

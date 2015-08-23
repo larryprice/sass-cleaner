@@ -19,7 +19,10 @@ var _ = Describe("Cleaner", func() {
 	})
 
 	It("Parses simple sass file", func () {
-		Expect(Parse(file)).To(BeNil())
-		// Expect(true).To(Equal(false))
+		styles, err := Parse(file)
+		Expect(err).To(BeNil())
+		testStyles := styles[".something"]
+		Expect(testStyles).To(HaveLen(1))
+		Expect(testStyles["margin-left"]).To(Equal("2em"))
 	})
 })
